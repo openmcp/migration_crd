@@ -12,6 +12,10 @@ type OpenMCPMigrationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	TargetCluster string `json:"TargetClusterName"`
+	SourceCluster string `json:"SourceClusterName"`
+	PVtype        string `json:"PVtype"`
+	ResourceName  string `json:"ResourceName"`
 }
 
 // OpenMCPMigrationStatus defines the observed state of OpenMCPMigration
@@ -19,14 +23,8 @@ type OpenMCPMigrationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	MigrationSpec MigrationSpecs `json:"MigrationSpec"`
-}
-
-type MigrationSpecs struct {
-	TargetCluster string `json:"TargetClusterName"`
-	SourceCluster string `json:"SourceClusterName"`
-	PVtype        string `json:"PVtype"`
-	ResourceName  string `json:"ResourceName"`
+	MigrationStatus bool   `json:"MigrationSpec"`
+	Reason          string `json:"Reason"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

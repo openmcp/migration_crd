@@ -24,7 +24,7 @@ import (
 )
 
 func ResourceMigration(){
-
+	&nanumv1alpha1.OpenMCPMigrationSpec.
 }
 
 func PVMigration(){

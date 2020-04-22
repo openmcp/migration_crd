@@ -30,6 +30,24 @@ spec:
           type: object
         spec:
           description: OpenMCPMigrationSpec defines the desired state of OpenMCPMigration
+          properties:
+            PVtype:
+              type: string
+            ResourceName:
+              type: string
+            SourceClusterName:
+              type: string
+            TargetClusterName:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: Run "operator-sdk generate k8s" to regenerate code after
+                modifying this file Add custom validation using kubebuilder tags:
+                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              type: string
+          required:
+          - PVtype
+          - ResourceName
+          - SourceClusterName
+          - TargetClusterName
           type: object
         status:
           description: OpenMCPMigrationStatus defines the observed state of OpenMCPMigration
@@ -39,23 +57,12 @@ spec:
                 of cluster Important: Run "operator-sdk generate k8s" to regenerate
                 code after modifying this file Add custom validation using kubebuilder
                 tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
-              properties:
-                PVtype:
-                  type: string
-                ResourceName:
-                  type: string
-                SourceClusterName:
-                  type: string
-                TargetClusterName:
-                  type: string
-              required:
-              - PVtype
-              - ResourceName
-              - SourceClusterName
-              - TargetClusterName
-              type: object
+              type: boolean
+            Reason:
+              type: string
           required:
           - MigrationSpec
+          - Reason
           type: object
       type: object
   version: v1alpha1
