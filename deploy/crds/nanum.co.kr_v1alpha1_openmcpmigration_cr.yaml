@@ -1,0 +1,7 @@
+apiVersion: nanum.co.kr/v1alpha1
+kind: OpenMCPMigration
+metadata:
+  name: example-openmcpmigration
+spec:
+  # Add fields here
+  size: 3
