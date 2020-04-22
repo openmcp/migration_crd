@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"nanum.co.kr/openmcp/migration/pkg/apis/nanum/v1alpha1"
+	"migration/pkg/apis/nanum/v1alpha1"
 )
 
 func init() {

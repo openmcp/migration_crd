@@ -70,6 +70,7 @@ rules:
   - nanum.co.kr
   resources:
   - '*'
+  - openmcpmigrations
   verbs:
   - create
   - delete
