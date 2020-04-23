@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: migration
+  name: nanum.co.kr/openmcp/migration
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: migration
+      name: nanum.co.kr/openmcp/migration
   template:
     metadata:
       labels:
-        name: migration
+        name: nanum.co.kr/openmcp/migration
     spec:
-      serviceAccountName: migration
+      serviceAccountName: nanum.co.kr/openmcp/migration
       containers:
-        - name: migration
+        - name: nanum.co.kr/openmcp/migration
           # Replace this with the built image name
           image: REPLACE_IMAGE
           command:
-          - migration
+          - nanum.co.kr/openmcp/migration
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
@@ -30,4 +30,6 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "migration"
+              value: "nanum.co.kr/openmcp/migration"
+      imagePullSecrets:
+        - name: nanumsecret

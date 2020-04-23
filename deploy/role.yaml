@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
-  name: migration
+  name: nanum.co.kr/openmcp/migration
 rules:
 - apiGroups:
   - ""
@@ -48,7 +48,7 @@ rules:
 - apiGroups:
   - apps
   resourceNames:
-  - migration
+  - nanum.co.kr/openmcp/migration
   resources:
   - deployments/finalizers
   verbs:
@@ -70,7 +70,6 @@ rules:
   - nanum.co.kr
   resources:
   - '*'
-  - openmcpmigrations
   verbs:
   - create
   - delete

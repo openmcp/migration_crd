@@ -86,7 +86,7 @@ func main() {
 
 	ctx := context.TODO()
 	// Become the leader before proceeding
-	err = leader.Become(ctx, "migration-lock")
+	err = leader.Become(ctx, "nanum.co.kr/openmcp/migration-lock")
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)

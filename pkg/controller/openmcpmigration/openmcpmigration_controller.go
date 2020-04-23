@@ -5,15 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	nanumv1alpha1 "migration/pkg/apis/nanum/v1alpha1"
-
-	resources "migration/pkg/controller/openmcpmigration/resources"
-
 	"go.etcd.io/etcd/clientv3"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+	nanumv1alpha1 "nanum.co.kr/openmcp/migration/pkg/apis/nanum/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -148,17 +145,22 @@ func (r *ReconcileOpenMCPMigration) Reconcile(request reconcile.Request) (reconc
 		return reconcile.Result{}, err
 	}
 
-	var clientset *kubernetes.Clientset
-	data, err := GetEtcd("deploy")
-	fmt.Printf(data)
+	targetConfig, err := GetEtcd(instance.Spec.TargetCluster)
+	//sourceConfig, err := GetEtcd(instance.Spec.SourceCluster)
+	//var clientset *kubernetes.Clientset
+	con, err := clientcmd.Load([]byte(targetConfig))
+	if err != nil {
+		fmt.Print(con.CurrentContext)
+	}
+	// clientset, err = kubernetes.NewForConfig(con)
 	// Define a new Pod object
 	// pod := newPodForCR(instance)
-	pod, err := resources.PersistentVolume.CreatePersistentVolume(resources.PersistentVolume{}, clientset, data)
-	if err != nil {
-		fmt.Print(err)
-	} else {
-		fmt.Print(pod)
-	}
+	// pod, err := resources.PersistentVolume.CreatePersistentVolume(resources.PersistentVolume{}, clientset)
+	// if err != nil {
+	// 	fmt.Print(err)
+	// } else {
+	// 	fmt.Print(pod)
+	// }
 	// Set OpenMCPMigration instance as the owner and controller
 
 	return reconcile.Result{}, nil
