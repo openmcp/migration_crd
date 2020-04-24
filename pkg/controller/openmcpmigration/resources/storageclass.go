@@ -1,4 +1,4 @@
-package openmcpmigration
+package resources
 
 import (
 	"encoding/json"

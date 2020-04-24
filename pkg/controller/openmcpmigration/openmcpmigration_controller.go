@@ -85,7 +85,7 @@ func GetEtcd(key string) (string, error) {
 	ctx, _ := context.WithTimeout(context.Background(), requestTimeout)
 	cli, err := clientv3.New(clientv3.Config{
 		DialTimeout: dialTimeout,
-		Endpoints:   []string{"10.0.0.222:12379"},
+		Endpoints:   []string{"10.0.0.221:12379"},
 		//TLS:         tlsConfig,
 	})
 	if err != nil {
@@ -147,12 +147,17 @@ func (r *ReconcileOpenMCPMigration) Reconcile(request reconcile.Request) (reconc
 
 	targetConfig, err := GetEtcd(instance.Spec.TargetCluster)
 	//sourceConfig, err := GetEtcd(instance.Spec.SourceCluster)
-	//var clientset *kubernetes.Clientset
-	con, err := clientcmd.Load([]byte(targetConfig))
+	// var clientset *kubernetes.Clientset
+	con, err := clientcmd.NewClientConfigFromBytes([]byte(targetConfig))
 	if err != nil {
-		fmt.Print(con.CurrentContext)
+		fmt.Print(con.ClientConfig())
 	}
-	// clientset, err = kubernetes.NewForConfig(con)
+	clientconf, err := con.ClientConfig()
+	if err != nil {
+		fmt.Print(err)
+		fmt.Print(clientconf)
+	}
+	// clientset, err = kubernetes.NewForConfig(clientconf)
 	// Define a new Pod object
 	// pod := newPodForCR(instance)
 	// pod, err := resources.PersistentVolume.CreatePersistentVolume(resources.PersistentVolume{}, clientset)

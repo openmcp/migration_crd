@@ -4,4 +4,7 @@ metadata:
   name: example-openmcpmigration
 spec:
   # Add fields here
-  size: 3
+  PVtype: nfs
+  ResourceName: migration
+  SourceClusterName: 10.0.0.222
+  TargetClusterName: 10.0.0.223

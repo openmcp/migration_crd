@@ -1,10 +1,11 @@
-package openmcpmigration
+package resources
 
 import (
 	"encoding/json"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	//"context"
@@ -28,7 +29,7 @@ func (pv PersistentVolume) convertResourceObj(resourceInfoJSON string) (*corev1.
 	return persistentVolume, nil
 }
 
-func (pv PersistentVolume) CreatePersistentVolume(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
+func (pv PersistentVolume) CreateResource(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
 	resourceInfo, convertErr := pv.convertResourceObj(resourceInfoJSON)
 	if convertErr != nil {
 		return false, convertErr
@@ -43,5 +44,23 @@ func (pv PersistentVolume) CreatePersistentVolume(clientset *kubernetes.Clientse
 	fmt.Printf("Created pv %q.\n", result.GetObjectMeta().GetName())
 
 	return true, nil
+
+}
+func (pv PersistentVolume) DeleteResource(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
+
+	resourceInfo, convertErr := pv.convertResourceObj(resourceInfoJSON)
+	if convertErr != nil {
+		return false, convertErr
+	}
+	deleteOptions := metav1.DeleteOptions{}
+	resourceName := resourceInfo.GetName()
+	resourceInfo.ObjectMeta.ResourceVersion = ""
+
+	result := pv.apiCaller.Delete(resourceName, &deleteOptions)
+	if result != nil {
+		return false, result
+	} else {
+		return true, result
+	}
 
 }

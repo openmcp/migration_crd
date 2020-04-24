@@ -16,7 +16,7 @@ spec:
       containers:
         - name: migration
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: 10.0.0.224:4999/migration:1.0
           command:
           - migration
           imagePullPolicy: Always
@@ -31,3 +31,5 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "migration"
+      imagePullSecrets:
+        - name: nanumsecret
