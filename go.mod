@@ -4,9 +4,12 @@ go 1.13
 
 require (
 	github.com/coreos/etcd v3.3.19+incompatible // indirect
+	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/operator-framework/operator-sdk v0.16.1-0.20200323222658-501f753aecdc
 	github.com/spf13/pflag v1.0.5
+	github.com/tmc/scp v0.0.0-20170824174625-f7b48647feef
 	go.etcd.io/etcd v3.3.19+incompatible
+	golang.org/x/crypto v0.0.0-20191028145041-f83a4685e152
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v12.0.0+incompatible

@@ -28,4 +28,5 @@ func Test(t *testing.T) {
 	fmt.Println("--------------")
 
 	fmt.Print(clientset)
+	main()
 }

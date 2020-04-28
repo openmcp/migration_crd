@@ -2,7 +2,13 @@ package openmcpmigration
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 
+	"github.com/tmc/scp"
+	"golang.org/x/crypto/ssh"
+	kh "golang.org/x/crypto/ssh/knownhosts"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	nanumv1alpha1 "nanum.co.kr/openmcp/migration/pkg/apis/nanum/v1alpha1"
@@ -40,9 +46,17 @@ func MigratioResource(migSpec nanumv1alpha1.OpenMCPMigrationSpec, resourceType s
 	sourceClusterClient := getKubeClient(sourceClusterinfo)
 
 	resourceData, err := GetEtcd(resourceName)
+	fpLog, err := os.OpenFile("logfile.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	defer fpLog.Close()
 
 	client.CreateResource(targetClusterClient, resourceData)
 	client.DeleteResource(sourceClusterClient, resourceData)
+
+	log.SetOutput(fpLog)
+	log.Println(sourceCluster + "-->" + targetCluster + "resource:" + resourceName)
 
 }
 
@@ -63,6 +77,56 @@ func getKubeClient(clusterInfo string) *kubernetes.Clientset {
 
 	return clientset
 }
-func MigrationPV() {
 
+// func MigrationPV(resourceData string) {
+// 	sourceFilePath := ""
+// 	targetFilePath := ""
+
+// }
+
+func getKeyFile() (key ssh.Signer, err error) {
+	//usr, _ := user.Current()
+	keyFile := "/root/.ssh/id_rsa"
+	buf, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return
+	}
+	key, err = ssh.ParsePrivateKey(buf)
+	if err != nil {
+		return key, err
+	}
+	return key, err
+}
+
+func main() {
+	key, err := getKeyFile()
+	if err != nil {
+		panic(err)
+	}
+	hostKeyCallback, err := kh.New("/root/.ssh/known_hosts")
+	if err != nil {
+		panic(err)
+	}
+	// Define the Client Config as :
+	config := &ssh.ClientConfig{
+		User: "root",
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(key),
+		},
+		HostKeyCallback: hostKeyCallback,
+	}
+	client, err := ssh.Dial("tcp", "10.0.0.223:22", config)
+	if err != nil {
+		panic("Failed to dial: " + err.Error())
+	}
+
+	session, err := client.NewSession()
+	if err != nil {
+		panic("Failed to create session: " + err.Error())
+	}
+	err = scp.CopyPath("~/test", "~/test", session)
+	if err != nil {
+		panic("Failed to Copy: " + err.Error())
+	}
+	defer session.Close()
 }
