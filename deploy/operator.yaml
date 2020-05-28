@@ -19,7 +19,7 @@ spec:
           image: 10.0.0.224:4999/migration:1.0
           command:
           - migration
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE
               valueFrom:

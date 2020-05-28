@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	appsv1 "k8s.io/api/apps/v1"
+	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	typedappsv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
@@ -36,6 +37,13 @@ func (dp Deployment) CreateResource(clientset *kubernetes.Clientset, resourceInf
 		return false, convertErr
 	}
 
+	namespace := apiv1.NamespaceDefault
+	fmt.Print(namespace)
+	if resourceInfo.GetObjectMeta().GetNamespace() != "" && resourceInfo.GetObjectMeta().GetNamespace() != apiv1.NamespaceDefault {
+		namespace = resourceInfo.GetObjectMeta().GetNamespace()
+	}
+
+	dp.apiCaller = clientset.AppsV1().Deployments(namespace)
 	resourceInfo.ObjectMeta.ResourceVersion = ""
 
 	result, apiCallErr := dp.apiCaller.Create(resourceInfo)
@@ -65,4 +73,28 @@ func (dp Deployment) DeleteResource(clientset *kubernetes.Clientset, resourceInf
 		return true, result
 	}
 
+}
+
+func (deploy Deployment) GetJSON(clientset *kubernetes.Clientset, resourceName string, resourceNamespace string) (string, error) {
+	deploy.apiCaller = clientset.AppsV1().Deployments(resourceNamespace)
+
+	fmt.Printf("Listing Resource in namespace %q:\n", resourceNamespace)
+
+	result, apiCallErr := deploy.apiCaller.Get(resourceName, metav1.GetOptions{})
+	if apiCallErr != nil {
+		return "", apiCallErr
+	}
+
+	return Obj2JsonString(result)
+}
+func Obj2JsonString(obj interface{}) (string, error) {
+
+	json, err := json.Marshal(obj)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("===test2===")
+	fmt.Println(string(json))
+
+	return string(json), nil
 }

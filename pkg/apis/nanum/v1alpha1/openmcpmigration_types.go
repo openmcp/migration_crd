@@ -9,12 +9,20 @@ import (
 
 // OpenMCPMigrationSpec defines the desired state of OpenMCPMigration
 type OpenMCPMigrationSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	// container service list spec
+	MigrationServiceSource []MigrationServiceSource `json:"MigrationServiceSource"`
+}
+type MigrationServiceSource struct {
+	// container service spec
+	MigrationSource []MigrationSource `json:"MigrationSource"`
+	VolumePath      string            `json:"VolumePath"`
+}
+type MigrationSource struct {
+	// Migration source
 	TargetCluster string `json:"TargetClusterName"`
 	SourceCluster string `json:"SourceClusterName"`
-	PVtype        string `json:"PVtype"`
+	NameSpace     string `json:"NameSpace"`
+	ResourceType  string `json:"ResourceType"`
 	ResourceName  string `json:"ResourceName"`
 }
 

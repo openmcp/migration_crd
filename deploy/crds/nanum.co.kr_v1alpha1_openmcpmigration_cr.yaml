@@ -3,8 +3,27 @@ kind: OpenMCPMigration
 metadata:
   name: example-openmcpmigration
 spec:
-  # Add fields here
-  PVtype: nfs
-  ResourceName: migration
-  SourceClusterName: 10.0.0.222
-  TargetClusterName: 10.0.0.223
+  MigrationServiceSource:
+  - MigrationSource:
+    - ResourceName: testim-dp
+      ResourceType: dp
+      NameSpace: demo-service
+      SourceClusterName: cluster1
+      TargetClusterName: cluster2
+    - ResourceName: testim-sv
+      ResourceType: svc
+      NameSpace: demo-service
+      SourceClusterName: cluster1
+      TargetClusterName: cluster2
+    - ResourceName: testim-pv
+      ResourceType: pv
+      NameSpace: demo-service
+      SourceClusterName: cluster1
+      TargetClusterName: cluster2
+    - ResourceName: testim-pvc
+      ResourceType: pvc
+      NameSpace: demo-service
+      SourceClusterName: cluster1
+      TargetClusterName: cluster2
+    VolumePath: /root/migrationtest
+

@@ -9,8 +9,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	nanumv1alpha1 "nanum.co.kr/openmcp/migration/pkg/apis/nanum/v1alpha1"
+	resources "nanum.co.kr/openmcp/migration/pkg/controller/openmcpmigration/resources"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -25,6 +27,77 @@ var (
 	dialTimeout    = 2 * time.Second
 	requestTimeout = 10 * time.Second
 )
+
+func InsertEtcd(key string, value string) (bool, error) {
+
+	ctx, _ := context.WithTimeout(context.Background(), requestTimeout)
+	cli, err := clientv3.New(clientv3.Config{
+		DialTimeout: dialTimeout,
+		Endpoints:   []string{"10.0.0.221:12379"},
+		//TLS:         tlsConfig,
+	})
+	if err != nil {
+		// handle error!
+		fmt.Println(err)
+		return false, err
+	}
+	defer cli.Close()
+	kv := clientv3.NewKV(cli)
+
+	//==================================================
+
+	fmt.Println("*** Insert()")
+	// Delete all keys ("key prefix")
+	//kv.Delete(ctx, "key", clientv3.WithPrefix())
+	fmt.Println("key: " + key + ", value: " + value)
+
+	// Insert a key value
+	pr, err := kv.Put(ctx, key, value)
+	if err != nil {
+		fmt.Println(err)
+		return false, err
+	}
+	rev := pr.Header.Revision
+	fmt.Println("Revision:", rev)
+
+	return true, nil
+}
+
+func int32Ptr(i int32) *int32 { return &i }
+
+func GetResourceJSON(clientset *kubernetes.Clientset, resourceType string, resourceName string, resourceNamespace string) (string, error) {
+	var ret string
+	var err error
+	var client resources.Resource
+	switch resourceType {
+	case "Deployment", "deployment", "deploy", "dp":
+		client = resources.Deployment{}
+	case "Service", "service", "svc", "sv":
+		client = resources.Service{}
+	case "PersistentVolumeClaim", "persistentvolumeclaim", "pvc":
+		client = resources.PersistentVolumeClaim{}
+	case "PersistentVolume", "persistentvolume", "pv":
+		client = resources.PersistentVolume{}
+	}
+
+	fmt.Println(clientset)
+	fmt.Printf("resourceType : %s, resourceName : %s, resourceNamespace: %s", resourceType, resourceName, resourceNamespace)
+	ret, err = client.GetJSON(clientset, resourceName, resourceNamespace)
+	if err != nil {
+		switch err {
+		case clientcmd.ErrNoContext:
+			// 매칭되는 이름이 없음.
+			return "", clientcmd.ErrNoContext
+		default:
+			// 일반적인 에러처리 코드
+			return "", err
+			//return "", ErrUndefined
+		}
+	}
+	fmt.Println(ret)
+
+	return ret, err
+}
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
@@ -101,22 +174,22 @@ func GetEtcd(key string) (string, error) {
 	fmt.Println("*** GetEtcd()")
 	// Delete all keys ("key prefix")
 	//kv.Delete(ctx, "key", clientv3.WithPrefix())
-	fmt.Println("key: " + key)
+	// fmt.Println("key: " + key)
 
 	gr, err := kv.Get(ctx, key)
 	if err != nil {
 		// handle error!
-		fmt.Println(err)
+		// fmt.Println(err)
 		return "", err
 	}
 	//fmt.Println(gr)
 
 	if gr.Kvs == nil {
-		fmt.Println("Value: is nil")
+		// fmt.Println("Value: is nil")
 		return "", fmt.Errorf("key is empty")
 	}
 
-	fmt.Println("Value: ", string(gr.Kvs[0].Value), "Revision: ", gr.Header.Revision)
+	// fmt.Println("Value: ", string(gr.Kvs[0].Value), "Revision: ", gr.Header.Revision)
 	return string(gr.Kvs[0].Value), nil
 }
 
@@ -145,17 +218,23 @@ func (r *ReconcileOpenMCPMigration) Reconcile(request reconcile.Request) (reconc
 		return reconcile.Result{}, err
 	}
 
-	targetConfig, err := GetEtcd(instance.Spec.TargetCluster)
+	// targetConfig, err := GetEtcd(instance.Spec.TargetCluster)
 	//sourceConfig, err := GetEtcd(instance.Spec.SourceCluster)
 	// var clientset *kubernetes.Clientset
-	con, err := clientcmd.NewClientConfigFromBytes([]byte(targetConfig))
-	if err != nil {
-		fmt.Print(con.ClientConfig())
-	}
-	clientconf, err := con.ClientConfig()
-	if err != nil {
-		fmt.Print(err)
-		fmt.Print(clientconf)
+	// con, err := clientcmd.NewClientConfigFromBytes([]byte(targetConfig))
+	// if err != nil {
+	// 	fmt.Print(con.ClientConfig())
+	// }
+	// clientconf, err := con.ClientConfig()
+	// if err != nil {
+	// 	fmt.Print(err)
+	// 	fmt.Print(clientconf)
+	// }
+	serviceList := instance.Spec.MigrationServiceSource // 0 to read all files and folders
+	for _, data := range serviceList {
+		for _, data2 := range data.MigrationSource {
+			MigratioResource(data2)
+		}
 	}
 	// clientset, err = kubernetes.NewForConfig(clientconf)
 	// Define a new Pod object

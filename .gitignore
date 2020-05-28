@@ -9,6 +9,7 @@ build/_test
 /.emacs.desktop
 /.emacs.desktop.lock
 *.elc
+logfile.txt
 auto-save-list
 tramp
 .\#*

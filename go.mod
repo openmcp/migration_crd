@@ -3,6 +3,7 @@ module nanum.co.kr/openmcp/migration
 go 1.13
 
 require (
+	github.com/bramvdbogaerde/go-scp v0.0.0-20200119201711-987556b8bdd7
 	github.com/coreos/etcd v3.3.19+incompatible // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/operator-framework/operator-sdk v0.16.1-0.20200323222658-501f753aecdc

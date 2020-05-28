@@ -31,23 +31,42 @@ spec:
         spec:
           description: OpenMCPMigrationSpec defines the desired state of OpenMCPMigration
           properties:
-            PVtype:
-              type: string
-            ResourceName:
-              type: string
-            SourceClusterName:
-              type: string
-            TargetClusterName:
-              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                Important: Run "operator-sdk generate k8s" to regenerate code after
-                modifying this file Add custom validation using kubebuilder tags:
-                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
-              type: string
+            MigrationServiceSource:
+              description: container service list spec
+              items:
+                properties:
+                  MigrationSource:
+                    description: container service spec
+                    items:
+                      properties:
+                        NameSpace:
+                          type: string
+                        ResourceName:
+                          type: string
+                        ResourceType:
+                          type: string
+                        SourceClusterName:
+                          type: string
+                        TargetClusterName:
+                          description: Migration source
+                          type: string
+                      required:
+                      - NameSpace
+                      - ResourceName
+                      - ResourceType
+                      - SourceClusterName
+                      - TargetClusterName
+                      type: object
+                    type: array
+                  VolumePath:
+                    type: string
+                required:
+                - MigrationSource
+                - VolumePath
+                type: object
+              type: array
           required:
-          - PVtype
-          - ResourceName
-          - SourceClusterName
-          - TargetClusterName
+          - MigrationServiceSource
           type: object
         status:
           description: OpenMCPMigrationStatus defines the observed state of OpenMCPMigration

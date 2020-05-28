@@ -34,9 +34,14 @@ func (pv PersistentVolume) CreateResource(clientset *kubernetes.Clientset, resou
 	if convertErr != nil {
 		return false, convertErr
 	}
+	// namespace := apiv1.NamespaceDefault
+	// if resourceInfo.GetObjectMeta().GetNamespace() != "" && resourceInfo.GetObjectMeta().GetNamespace() != apiv1.NamespaceDefault {
+	// 	namespace = resourceInfo.GetObjectMeta().GetNamespace()
+	// }
 
+	pv.apiCaller = clientset.CoreV1().PersistentVolumes()
 	resourceInfo.ObjectMeta.ResourceVersion = ""
-
+	resourceInfo.Spec.ClaimRef.ResourceVersion = ""
 	result, apiCallErr := pv.apiCaller.Create(resourceInfo)
 	if apiCallErr != nil {
 		return false, apiCallErr
@@ -63,4 +68,14 @@ func (pv PersistentVolume) DeleteResource(clientset *kubernetes.Clientset, resou
 		return true, result
 	}
 
+}
+func (pv PersistentVolume) GetJSON(clientset *kubernetes.Clientset, resourceName string, resourceNamespace string) (string, error) {
+	// pv.apiCaller = clientset.CoreV1().PersistentVolumes()
+	pv.apiCaller = clientset.CoreV1().PersistentVolumes()
+	result, getErr := pv.apiCaller.Get(resourceName, metav1.GetOptions{})
+	if getErr != nil {
+		return "", getErr
+	}
+
+	return Obj2JsonString(result)
 }

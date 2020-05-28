@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	apiv1 "k8s.io/api/core/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -34,7 +35,12 @@ func (sv Service) CreateResource(clientset *kubernetes.Clientset, resourceInfoJS
 	if convertErr != nil {
 		return false, convertErr
 	}
+	namespace := apiv1.NamespaceDefault
+	if resourceInfo.GetObjectMeta().GetNamespace() != "" && resourceInfo.GetObjectMeta().GetNamespace() != apiv1.NamespaceDefault {
+		namespace = resourceInfo.GetObjectMeta().GetNamespace()
+	}
 
+	sv.apiCaller = clientset.CoreV1().Services(namespace)
 	resourceInfo.ObjectMeta.ResourceVersion = ""
 
 	result, apiCallErr := sv.apiCaller.Create(resourceInfo)
@@ -63,4 +69,15 @@ func (sv Service) DeleteResource(clientset *kubernetes.Clientset, resourceInfoJS
 		return true, result
 	}
 
+}
+func (sv Service) GetJSON(clientset *kubernetes.Clientset, resourceName string, resourceNamespace string) (string, error) {
+	sv.apiCaller = clientset.CoreV1().Services(resourceNamespace)
+	fmt.Printf("Listing Resource in namespace %q:\n", resourceNamespace)
+
+	result, apiCallErr := sv.apiCaller.Get(resourceName, metav1.GetOptions{})
+	if apiCallErr != nil {
+		return "", apiCallErr
+	}
+
+	return Obj2JsonString(result)
 }
