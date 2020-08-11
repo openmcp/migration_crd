@@ -15,6 +15,45 @@ type PersistentVolume struct {
 	apiCaller typedcorev1.PersistentVolumeInterface
 }
 
+func (pv PersistentVolume) linkShare(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
+	resourceInfo, convertErr := pv.convertResourceObj(resourceInfoJSON)
+	if convertErr != nil {
+		return false, convertErr
+	}
+	mainNfsServerHost := "10.0.0.222"
+	// namespace := apiv1.NamespaceDefault
+	// if resourceInfo.GetObjectMeta().GetNamespace() != "" && resourceInfo.GetObjectMeta().GetNamespace() != apiv1.NamespaceDefault {
+	// 	namespace = resourceInfo.GetObjectMeta().GetNamespace()
+	// }
+
+	pv.apiCaller = clientset.CoreV1().PersistentVolumes()
+	resourceInfo.ObjectMeta.ResourceVersion = ""
+	resourceInfo.Spec.ClaimRef.ResourceVersion = ""
+	newSpec := resourceInfo.Spec
+	VolumePath := ""
+	if resourceInfo.Spec.NFS != nil {
+		VolumePath = resourceInfo.Spec.NFS.Path
+	} else if resourceInfo.Spec.HostPath != nil {
+		VolumePath = resourceInfo.Spec.HostPath.Path
+	} else if resourceInfo.Spec.ISCSI != nil {
+		VolumePath = resourceInfo.Spec.Local.Path
+	} else if resourceInfo.Spec.Glusterfs != nil {
+		VolumePath = resourceInfo.Spec.Glusterfs.Path
+	}
+
+	newSpec.NFS.Path = VolumePath
+	newSpec.NFS.Server = mainNfsServerHost
+	newSpec.NFS.ReadOnly = false
+	resourceInfo.Spec = newSpec
+	result, apiCallErr := pv.apiCaller.Create(resourceInfo)
+	if apiCallErr != nil {
+		return false, apiCallErr
+	}
+	fmt.Printf("Link Share pv %q.\n", result.GetObjectMeta().GetName())
+
+	return true, nil
+}
+
 func (pv PersistentVolume) convertResourceObj(resourceInfoJSON string) (*corev1.PersistentVolume, error) {
 
 	// jsonStr 에서 marshal 하기
@@ -30,15 +69,30 @@ func (pv PersistentVolume) convertResourceObj(resourceInfoJSON string) (*corev1.
 }
 
 func (pv PersistentVolume) CreateResource(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
+	// link share 코드 변경중
 	resourceInfo, convertErr := pv.convertResourceObj(resourceInfoJSON)
 	if convertErr != nil {
 		return false, convertErr
 	}
-	// namespace := apiv1.NamespaceDefault
-	// if resourceInfo.GetObjectMeta().GetNamespace() != "" && resourceInfo.GetObjectMeta().GetNamespace() != apiv1.NamespaceDefault {
-	// 	namespace = resourceInfo.GetObjectMeta().GetNamespace()
-	// }
 
+	// if resourceInfo.GenerateName != "linkShare" {
+	// 	pv.linkShare(clientset, resourceInfoJSON)
+	// } else {
+
+	// 	// namespace := apiv1.NamespaceDefault
+	// 	// if resourceInfo.GetObjectMeta().GetNamespace() != "" && resourceInfo.GetObjectMeta().GetNamespace() != apiv1.NamespaceDefault {
+	// 	// 	namespace = resourceInfo.GetObjectMeta().GetNamespace()
+	// 	// }
+
+	// 	pv.apiCaller = clientset.CoreV1().PersistentVolumes()
+	// 	resourceInfo.ObjectMeta.ResourceVersion = ""
+	// 	resourceInfo.Spec.ClaimRef.ResourceVersion = ""
+	// 	result, apiCallErr := pv.apiCaller.Create(resourceInfo)
+	// 	if apiCallErr != nil {
+	// 		return false, apiCallErr
+	// 	}
+	// 	fmt.Printf("Created pv %q.\n", result.GetObjectMeta().GetName())
+	// }
 	pv.apiCaller = clientset.CoreV1().PersistentVolumes()
 	resourceInfo.ObjectMeta.ResourceVersion = ""
 	resourceInfo.Spec.ClaimRef.ResourceVersion = ""
@@ -47,7 +101,6 @@ func (pv PersistentVolume) CreateResource(clientset *kubernetes.Clientset, resou
 		return false, apiCallErr
 	}
 	fmt.Printf("Created pv %q.\n", result.GetObjectMeta().GetName())
-
 	return true, nil
 
 }

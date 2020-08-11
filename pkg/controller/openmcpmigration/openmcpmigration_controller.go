@@ -230,10 +230,11 @@ func (r *ReconcileOpenMCPMigration) Reconcile(request reconcile.Request) (reconc
 	// 	fmt.Print(err)
 	// 	fmt.Print(clientconf)
 	// }
-	serviceList := instance.Spec.MigrationServiceSource // 0 to read all files and folders
+
+	serviceList := instance.Spec.MigrationServiceSources // 0 to read all files and folders
 	for _, data := range serviceList {
-		for _, data2 := range data.MigrationSource {
-			MigratioResource(data2)
+		for _, data2 := range data.MigrationSources {
+			MigratioResource(data2, data.VolumePath)
 		}
 	}
 	// clientset, err = kubernetes.NewForConfig(clientconf)

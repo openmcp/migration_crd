@@ -52,6 +52,7 @@ func (sv Service) CreateResource(clientset *kubernetes.Clientset, resourceInfoJS
 	return true, nil
 
 }
+
 func (sv Service) DeleteResource(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
 
 	resourceInfo, convertErr := sv.convertResourceObj(resourceInfoJSON)

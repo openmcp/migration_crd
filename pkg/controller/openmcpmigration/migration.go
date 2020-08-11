@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"time"
 
 	// scp "github.com/bramvdbogaerde/go-scp"
@@ -16,121 +17,128 @@ import (
 	resources "nanum.co.kr/openmcp/migration/pkg/controller/openmcpmigration/resources"
 )
 
-func MigratioResource(migSpec nanumv1alpha1.MigrationSource) {
+func MigratioResource(migSpec nanumv1alpha1.MigrationSource, volumepath string) {
+	// 리소스 마이그레이션
+	now := time.Now()
+
 	targetCluster := migSpec.TargetCluster
 	sourceCluster := migSpec.SourceCluster
 	resourceName := migSpec.ResourceName
 	ResourceType := migSpec.ResourceType
+	volumePath := volumepath
 	var client resources.Resource
 
-	targetClusterinfo, err := GetEtcd(targetCluster)
-	if err != nil {
-		fmt.Print("error")
-	}
-	// sourceClusterinfo, err := GetEtcd(sourceCluster)
-	// if err != nil {
-	// 	fmt.Print("error")
-	// }
-
-	switch ResourceType {
-	case "Deployment", "deployment", "deploy":
-		client = resources.Deployment{}
-	case "Service", "service", "svc":
-		client = resources.Service{}
-	case "PersistentVolumeClaim", "persistentvolumeclaim", "pvc":
-		client = resources.PersistentVolumeClaim{}
-	case "PersistentVolume", "persistentvolume", "pv":
-		client = resources.PersistentVolume{}
-	}
-
-	targetClusterClient := getKubeClient(targetClusterinfo)
-	//sourceClusterClient := getKubeClient(sourceClusterinfo)
-
-	resourceData, err := GetEtcd(resourceName)
 	fpLog, err := os.OpenFile("logfile.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic(err)
 	}
 	defer fpLog.Close()
-
-	result, apiCallErr := client.CreateResource(targetClusterClient, resourceData)
-	if apiCallErr != nil {
-		fmt.Print(apiCallErr)
-	} else {
-		fmt.Print(result)
-	}
-	//client.DeleteResource(sourceClusterClient, resourceData)
-
 	log.SetOutput(fpLog)
-	now := time.Now()
-	log.Println(now.String() + " " + sourceCluster + "-->" + targetCluster + " resource: " + resourceName)
+	log.Println("migration start  : " + now.String())
+	log.Println("get cluster info start")
+
+	targetClusterinfo, err := GetEtcd(targetCluster)
+	if err != nil {
+		fmt.Print("error")
+		log.Println("get cluster info err :"+now.String(), err)
+	}
+	log.Println("get cluster info complete")
+
+	sourceClusterinfo, err := GetEtcd(sourceCluster)
+	if err != nil {
+		fmt.Print("error")
+		log.Println("get cluster info err :"+now.String(), err)
+	}
+	log.Println("get cluster info complete")
+
+	switch ResourceType {
+	case "Deployment", "deployment", "deploy", "dp":
+		client = resources.Deployment{}
+	case "Service", "service", "svc", "sv":
+		client = resources.Service{}
+	case "PersistentVolumeClaim", "persistentvolumeclaim", "pvc":
+		client = resources.PersistentVolumeClaim{}
+	case "PersistentVolume", "persistentvolume", "pv":
+		ResourceType = "pv"
+		client = resources.PersistentVolume{}
+	}
+
+	log.Println("kubernetes client create")
+	targetClusterClient := getKubeClient(targetClusterinfo)
+	log.Println("kubernetes client complete")
+	sourceClusterClient := getKubeClient(sourceClusterinfo)
+
+	log.Println("get resourceData start")
+	resourceData, err := GetEtcd(resourceName)
+	if err != nil {
+		log.Println("get resourceData error :"+now.String(), err)
+	} else {
+		log.Println("get resourceData complete")
+	}
+
+	log.Println("create resource start")
+	if ResourceType == "pv" {
+		createResult, apiCallErr := client.CreateResource(targetClusterClient, resourceData)
+		if apiCallErr != nil {
+			fmt.Print(apiCallErr)
+			log.Println("create resource error :"+now.String(), err)
+		} else {
+			fmt.Print(createResult)
+			log.Println("create resource complete", createResult)
+		}
+
+	} else {
+		createResult, apiCallErr := client.CreateResource(targetClusterClient, resourceData)
+		if apiCallErr != nil {
+			fmt.Print(apiCallErr)
+			log.Println("create resource error :"+now.String(), err)
+		} else {
+			fmt.Print(createResult)
+			log.Println("create resource complete", createResult)
+		}
+
+		deleteResult, apiCallErr := client.DeleteResource(sourceClusterClient, resourceData)
+		if apiCallErr != nil {
+			fmt.Print(apiCallErr)
+			log.Println("create resource error :"+now.String(), err)
+		} else {
+			fmt.Print(deleteResult)
+			log.Println("create resource complete", deleteResult)
+		}
+	}
+	log.Println(sourceCluster + "-->" + targetCluster + " resource: " + resourceName)
+	log.Println("migration complete : " + now.String())
+
+	go MigrationVolume(targetCluster, sourceCluster, volumePath)
 
 }
 
-// func MigrationVolume(sourcessh string, targetssh string) {
-// 	//func MigrationVolume(migSpec nanumv1alpha1.OpenMCPMigrationSpec) {
-// 	// targetCluster := migSpec.MigrationSource.TargetCluster
-// 	// sourceCluster := migSpec.MigrationSource.SourceCluster
-// 	// resourceName := migSpec.MigrationSource.ResourceName
-// 	// filePath := migSpec.MigrationSource.FilePath
-// 	filePath := "/root/scptest/"
-// 	// var client resources.Resource
-// 	// client = resources.PersistentVolume{}
+func MigrationVolume(sourceCluster string, targetCluster string, volumePath string) {
+	//볼륨 마이그레이션
+	t := time.Now().Format("Stamp")
+	exec.Command("bash", "-c", "ssh root@"+targetCluster)
 
-// 	// sshConfig, err := auth.PrivateKey("root", sourcessh, ssh.InsecureIgnoreHostKey())
-// 	// checkError(err)
-// 	sshConfig, err := auth.PasswordKey("root", "nanumrltnf626", ssh.InsecureIgnoreHostKey())
-// 	checkError(err)
-
-// 	scpClient := scp.NewClient("10.0.0.221:22", &sshConfig)
-// 	err = scpClient.Connect()
-// 	checkError(err)
-// 	file, err := os.Open("/root/test/")
-// 	if err != nil {
-// 		log.Fatalf("failed opening directory: %s", err)
-// 	}
-
-// 	list, _ := file.Readdirnames(0) // 0 to read all files and folders
-// 	for _, name := range list {
-// 		fmt.Println(name)
-// 		fileData, err := os.Open("/root/test/" + name)
-// 		checkError(err)
-// 		scp
-// 		scpClient.(fileData, filePath+name, "0655")
-// 		defer fileData.Close()
-// 		fmt.Println(name + " copy complete!")
-
-// 	}
-// 	defer file.Close()
-
-// 	// fileData, err := os.Open("/Users/local-user-name/Desktop/test.txt")
-// 	// checkError(err)
-
-// 	// scpClient.CopyFile(fileData, "/root/test", "0655")
-
-// 	defer scpClient.Session.Close()
-
-// }
+	fmt.Println(t)
+	result, _ := exec.Command("bash", "-c", "rsync -ravzh root@"+sourceCluster+":"+volumePath+" "+volumePath).Output()
+	fmt.Println(result)
+}
 
 func getKubeClient(clusterInfo string) *kubernetes.Clientset {
 	var clientset *kubernetes.Clientset
 	con, err := clientcmd.NewClientConfigFromBytes([]byte(clusterInfo))
 	if err != nil {
-		fmt.Println("--------------1---------------")
 		fmt.Print(err)
 	}
 	fmt.Println("-----------------------------")
 	fmt.Println(con)
 	clientconf, err := con.ClientConfig()
 	if err != nil {
-		fmt.Println("--------------2----------------")
 		fmt.Print(err)
 	}
-	fmt.Println("-------------------------")
+
 	fmt.Print(clientconf.Host)
 	clientset, err = kubernetes.NewForConfig(clientconf)
 	if err != nil {
-		fmt.Println("--------------3---------------")
 		fmt.Print(err)
 	}
 

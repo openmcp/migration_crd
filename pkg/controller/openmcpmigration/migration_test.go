@@ -4,7 +4,20 @@ import (
 	"testing"
 
 	nanumv1alpha1 "nanum.co.kr/openmcp/migration/pkg/apis/nanum/v1alpha1"
+	// aa "nanum.co.kr/openmcp/snapshot-operator/pkg/controller/openmcpsnapshot/etcd"
 )
+
+func TestInsertEtcd(t *testing.T) {
+
+}
+
+func TestVolume(t *testing.T) {
+
+	source := "10.0.0.223"
+	target := "10.0.0.222"
+	MigrationVolume(source, target, "/root/testvolume/test200m")
+
+}
 
 func TestGetResourceJson(t *testing.T) {
 
@@ -13,11 +26,9 @@ func TestGetResourceJson(t *testing.T) {
 	var resourceNamespace string
 
 	var val string
-	var err error
 	var isSuccess bool
 	var etcdErr error
 
-	// 성공 케이스1
 	resourceType = "pvc"
 	resourceName = "testim-pvc"
 	resourceNamespace = "demo-service"
@@ -37,46 +48,15 @@ func TestGetResourceJson(t *testing.T) {
 		t.Error("Insert Etcd Fail") // 에러 발생
 	}
 
+	// 성공 케이스1
+
 }
 
 func Test(t *testing.T) {
 
-	// clusterinfo, err := GetEtcd("cluster1")
-	// if err != nil {
-	// 	fmt.Print("error")
-	// }
-	// fmt.Print(clusterinfo)
-	// var clientset *kubernetes.Clientset
-	// con, err := clientcmd.NewClientConfigFromBytes([]byte(clusterinfo))
-	// if err != nil {
-	// 	fmt.Print(err)
-	// }
-	// clientconf, err := con.ClientConfig()
-	// if err != nil {
-	// 	fmt.Print(err)
-	// }
-	// clientset, err = kubernetes.NewForConfig(clientconf)
-	// fmt.Println("--------------")
-
-	// fmt.Print(clientset)
-
 	var migSpec nanumv1alpha1.MigrationServiceSource
 	migSpec.VolumePath = "root/migrationtest"
-	migSpec.MigrationSource = []nanumv1alpha1.MigrationSource{
-		{
-			TargetCluster: "cluster1",
-			SourceCluster: "cluster2",
-			NameSpace:     "demo-service",
-			ResourceName:  "testim-pv",
-			ResourceType:  "pv",
-		},
-		{
-			TargetCluster: "cluster1",
-			SourceCluster: "cluster2",
-			NameSpace:     "demo-service",
-			ResourceName:  "testim-pvc",
-			ResourceType:  "pvc",
-		},
+	migSpec.MigrationSources = []nanumv1alpha1.MigrationSource{
 		{
 			TargetCluster: "cluster1",
 			SourceCluster: "cluster2",
@@ -84,17 +64,11 @@ func Test(t *testing.T) {
 			ResourceName:  "testim-dp",
 			ResourceType:  "deploy",
 		},
-		{
-			TargetCluster: "cluster1",
-			SourceCluster: "cluster2",
-			NameSpace:     "demo-service",
-			ResourceName:  "testim-sv",
-			ResourceType:  "svc",
-		},
 	}
+
 	// MigratioResource(migSpec.MigrationSource[0])
-	for i := 0; i < 4; i++ {
-		MigratioResource(migSpec.MigrationSource[i])
+	for i := 0; i < 1; i++ {
+		MigratioResource(migSpec.MigrationSources[i], migSpec.VolumePath)
 	}
 
 	// sourcessh, err := GetEtcd("223ssh")

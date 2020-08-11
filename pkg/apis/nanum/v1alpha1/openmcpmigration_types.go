@@ -10,17 +10,17 @@ import (
 // OpenMCPMigrationSpec defines the desired state of OpenMCPMigration
 type OpenMCPMigrationSpec struct {
 	// container service list spec
-	MigrationServiceSource []MigrationServiceSource `json:"MigrationServiceSource"`
+	MigrationServiceSources []MigrationServiceSource `json:"MigrationServiceSource"`
 }
 type MigrationServiceSource struct {
 	// container service spec
-	MigrationSource []MigrationSource `json:"MigrationSource"`
-	VolumePath      string            `json:"VolumePath"`
+	MigrationSources []MigrationSource `json:"MigrationSource"`
+	VolumePath       string            `json:"VolumePath"`
 }
 type MigrationSource struct {
 	// Migration source
-	TargetCluster string `json:"TargetClusterName"`
-	SourceCluster string `json:"SourceClusterName"`
+	TargetCluster string `json:"TargetCluster"`
+	SourceCluster string `json:"SourceCluster"`
 	NameSpace     string `json:"NameSpace"`
 	ResourceType  string `json:"ResourceType"`
 	ResourceName  string `json:"ResourceName"`

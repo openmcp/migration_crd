@@ -45,17 +45,17 @@ spec:
                           type: string
                         ResourceType:
                           type: string
-                        SourceClusterName:
+                        SourceCluster:
                           type: string
-                        TargetClusterName:
+                        TargetCluster:
                           description: Migration source
                           type: string
                       required:
                       - NameSpace
                       - ResourceName
                       - ResourceType
-                      - SourceClusterName
-                      - TargetClusterName
+                      - SourceCluster
+                      - TargetCluster
                       type: object
                     type: array
                   VolumePath:

@@ -5,12 +5,15 @@ go 1.13
 require (
 	github.com/bramvdbogaerde/go-scp v0.0.0-20200119201711-987556b8bdd7
 	github.com/coreos/etcd v3.3.19+incompatible // indirect
+	github.com/gorilla/websocket v1.4.2
+	github.com/julienschmidt/httprouter v1.2.0
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/operator-framework/operator-sdk v0.16.1-0.20200323222658-501f753aecdc
 	github.com/spf13/pflag v1.0.5
 	github.com/tmc/scp v0.0.0-20170824174625-f7b48647feef
 	go.etcd.io/etcd v3.3.19+incompatible
 	golang.org/x/crypto v0.0.0-20191028145041-f83a4685e152
+	golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v12.0.0+incompatible
@@ -45,3 +48,5 @@ replace (
 replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309 // Required by Helm
 
 replace github.com/openshift/api => github.com/openshift/api v0.0.0-20190924102528-32369d4db2ad // Required until https://github.com/operator-framework/operator-lifecycle-manager/pull/1241 is resolved
+
+replace nanum.co.kr/snapshot-operator => ../snapshot-operator
