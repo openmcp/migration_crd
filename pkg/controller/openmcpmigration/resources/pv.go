@@ -8,7 +8,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	//"context"
+	config "nanum.co.kr/openmcp/migration/pkg"
 )
 
 type PersistentVolume struct {
@@ -20,7 +22,7 @@ func (pv PersistentVolume) linkShare(clientset *kubernetes.Clientset, resourceIn
 	if convertErr != nil {
 		return false, convertErr
 	}
-	mainNfsServerHost := "10.0.0.222"
+	mainNfsServerHost := config.ROOTNFSSERVER
 	// namespace := apiv1.NamespaceDefault
 	// if resourceInfo.GetObjectMeta().GetNamespace() != "" && resourceInfo.GetObjectMeta().GetNamespace() != apiv1.NamespaceDefault {
 	// 	namespace = resourceInfo.GetObjectMeta().GetNamespace()

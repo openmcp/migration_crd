@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	config "nanum.co.kr/openmcp/migration/pkg"
 	nanumv1alpha1 "nanum.co.kr/openmcp/migration/pkg/apis/nanum/v1alpha1"
 	resources "nanum.co.kr/openmcp/migration/pkg/controller/openmcpmigration/resources"
 )
@@ -108,13 +109,16 @@ func MigratioResource(migSpec nanumv1alpha1.MigrationSource, volumepath string) 
 	}
 	log.Println(sourceCluster + "-->" + targetCluster + " resource: " + resourceName)
 	log.Println("migration complete : " + now.String())
-
+	/*
+		볼륨 마이그레이션 구조 변겨응로 인한 코드 수정 필요
+	*/
 	go MigrationVolume(targetCluster, sourceCluster, volumePath)
 
 }
 
 func MigrationVolume(sourceCluster string, targetCluster string, volumePath string) {
-	//볼륨 마이그레이션
+	// 볼륨 마이그레이션 RSYNC방식
+	// 볼륨 마이그레이션 구조 변겨응로 인한 코드 수정 필요
 	t := time.Now().Format("Stamp")
 	exec.Command("bash", "-c", "ssh root@"+targetCluster)
 
@@ -124,6 +128,7 @@ func MigrationVolume(sourceCluster string, targetCluster string, volumePath stri
 }
 
 func getKubeClient(clusterInfo string) *kubernetes.Clientset {
+	//쿠버 클라이언트 GET
 	var clientset *kubernetes.Clientset
 	con, err := clientcmd.NewClientConfigFromBytes([]byte(clusterInfo))
 	if err != nil {
@@ -146,8 +151,9 @@ func getKubeClient(clusterInfo string) *kubernetes.Clientset {
 }
 
 func getKeyFile() (key ssh.Signer, err error) {
-	//usr, _ := user.Current()
-	keyFile := "/root/.ssh/id_rsa"
+	//클러스터 조인시 SSH 키 파일 정보 필요
+	//통합시 수정 필요 부분
+	keyFile := config.SSHKEYFILEPATH
 	buf, err := ioutil.ReadFile(keyFile)
 	if err != nil {
 		return
@@ -159,23 +165,6 @@ func getKeyFile() (key ssh.Signer, err error) {
 	return key, err
 }
 
-// func main() {
-// 	sshConfig, err := auth.PrivateKey("nanumdev2", "/root/.ssh/id_rsa", ssh.InsecureIgnoreHostKey())
-// 	checkError(err)
-
-// 	scpClient := scp.NewClient("10.0.0.223:22", &sshConfig)
-// 	scp.CopyPath()
-// 	err = scpClient.Connect()
-// 	checkError(err)
-
-// 	fileData, err := os.Open("/root/test/test1.txt")
-// 	checkError(err)
-
-// 	scpClient.CopyFile(fileData, "/root/test", "0655")
-
-// 	defer scpClient.Session.Close()
-// 	defer fileData.Close()
-// }
 func checkError(err error) {
 	if err != nil {
 		panic(err)

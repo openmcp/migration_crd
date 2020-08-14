@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	config "nanum.co.kr/openmcp/migration/pkg"
 	nanumv1alpha1 "nanum.co.kr/openmcp/migration/pkg/apis/nanum/v1alpha1"
 	resources "nanum.co.kr/openmcp/migration/pkg/controller/openmcpmigration/resources"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,7 +34,7 @@ func InsertEtcd(key string, value string) (bool, error) {
 	ctx, _ := context.WithTimeout(context.Background(), requestTimeout)
 	cli, err := clientv3.New(clientv3.Config{
 		DialTimeout: dialTimeout,
-		Endpoints:   []string{"10.0.0.221:12379"},
+		Endpoints:   []string{config.ETCDENDPOINT},
 		//TLS:         tlsConfig,
 	})
 	if err != nil {
@@ -158,7 +159,7 @@ func GetEtcd(key string) (string, error) {
 	ctx, _ := context.WithTimeout(context.Background(), requestTimeout)
 	cli, err := clientv3.New(clientv3.Config{
 		DialTimeout: dialTimeout,
-		Endpoints:   []string{"10.0.0.221:12379"},
+		Endpoints:   []string{config.ETCDENDPOINT},
 		//TLS:         tlsConfig,
 	})
 	if err != nil {
