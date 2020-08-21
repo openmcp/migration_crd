@@ -17,12 +17,12 @@ type PersistentVolume struct {
 	apiCaller typedcorev1.PersistentVolumeInterface
 }
 
-func (pv PersistentVolume) linkShare(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
+func (pv PersistentVolume) CreateLinkShare(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
 	resourceInfo, convertErr := pv.convertResourceObj(resourceInfoJSON)
 	if convertErr != nil {
 		return false, convertErr
 	}
-	mainNfsServerHost := config.ROOTNFSSERVER
+	mainNfsServerHost := config.EXTERNAL_NFS
 	// namespace := apiv1.NamespaceDefault
 	// if resourceInfo.GetObjectMeta().GetNamespace() != "" && resourceInfo.GetObjectMeta().GetNamespace() != apiv1.NamespaceDefault {
 	// 	namespace = resourceInfo.GetObjectMeta().GetNamespace()
@@ -35,14 +35,19 @@ func (pv PersistentVolume) linkShare(clientset *kubernetes.Clientset, resourceIn
 	VolumePath := ""
 	if resourceInfo.Spec.NFS != nil {
 		VolumePath = resourceInfo.Spec.NFS.Path
+		newSpec.NFS = nil
 	} else if resourceInfo.Spec.HostPath != nil {
 		VolumePath = resourceInfo.Spec.HostPath.Path
+		newSpec.HostPath = nil
 	} else if resourceInfo.Spec.ISCSI != nil {
 		VolumePath = resourceInfo.Spec.Local.Path
+		newSpec.ISCSI = nil
 	} else if resourceInfo.Spec.Glusterfs != nil {
 		VolumePath = resourceInfo.Spec.Glusterfs.Path
+		newSpec.Glusterfs = nil
 	}
-
+	oriPvName := resourceInfo.ObjectMeta.Name
+	resourceInfo.ObjectMeta.Name = "ls_" + oriPvName
 	newSpec.NFS.Path = VolumePath
 	newSpec.NFS.Server = mainNfsServerHost
 	newSpec.NFS.ReadOnly = false
@@ -106,6 +111,7 @@ func (pv PersistentVolume) CreateResource(clientset *kubernetes.Clientset, resou
 	return true, nil
 
 }
+
 func (pv PersistentVolume) DeleteResource(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
 
 	resourceInfo, convertErr := pv.convertResourceObj(resourceInfoJSON)
@@ -113,7 +119,7 @@ func (pv PersistentVolume) DeleteResource(clientset *kubernetes.Clientset, resou
 		return false, convertErr
 	}
 	deleteOptions := metav1.DeleteOptions{}
-	resourceName := resourceInfo.GetName()
+	resourceName := "ls_" + resourceInfo.GetName()
 	resourceInfo.ObjectMeta.ResourceVersion = ""
 
 	result := pv.apiCaller.Delete(resourceName, &deleteOptions)
@@ -124,6 +130,7 @@ func (pv PersistentVolume) DeleteResource(clientset *kubernetes.Clientset, resou
 	}
 
 }
+
 func (pv PersistentVolume) GetJSON(clientset *kubernetes.Clientset, resourceName string, resourceNamespace string) (string, error) {
 	// pv.apiCaller = clientset.CoreV1().PersistentVolumes()
 	pv.apiCaller = clientset.CoreV1().PersistentVolumes()

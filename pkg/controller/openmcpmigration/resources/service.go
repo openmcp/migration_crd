@@ -29,7 +29,13 @@ func (sv Service) convertResourceObj(resourceInfoJSON string) (*corev1.Service, 
 	}
 	return service, nil
 }
-
+func (sv Service) CreateLinkShare(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
+	result, err := sv.CreateResource(clientset, resourceInfoJSON)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
 func (sv Service) CreateResource(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
 	resourceInfo, convertErr := sv.convertResourceObj(resourceInfoJSON)
 	if convertErr != nil {

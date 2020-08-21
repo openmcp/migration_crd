@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	typedappsv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
+	config "nanum.co.kr/openmcp/migration/pkg"
 )
 
 //"context"
@@ -30,7 +31,31 @@ func (dp Deployment) convertResourceObj(resourceInfoJSON string) (*appsv1.Deploy
 	}
 	return deploy, nil
 }
+func (dp Deployment) CreateLinkShare(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
+	resourceInfo, convertErr := dp.convertResourceObj(resourceInfoJSON)
+	if convertErr != nil {
+		return false, convertErr
+	}
 
+	namespace := apiv1.NamespaceDefault
+	fmt.Print(namespace)
+	if resourceInfo.GetObjectMeta().GetNamespace() != "" && resourceInfo.GetObjectMeta().GetNamespace() != apiv1.NamespaceDefault {
+		namespace = resourceInfo.GetObjectMeta().GetNamespace()
+	}
+
+	dp.apiCaller = clientset.AppsV1().Deployments(namespace)
+	resourceInfo.ObjectMeta.ResourceVersion = ""
+	oriPvcName := resourceInfo.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName
+	lsPvcName := config.LINKSHARED + oriPvcName
+	resourceInfo.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName = lsPvcName
+	result, apiCallErr := dp.apiCaller.Create(resourceInfo)
+	if apiCallErr != nil {
+		return false, apiCallErr
+	}
+	fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName())
+
+	return true, nil
+}
 func (dp Deployment) CreateResource(clientset *kubernetes.Clientset, resourceInfoJSON string) (bool, error) {
 	resourceInfo, convertErr := dp.convertResourceObj(resourceInfoJSON)
 	if convertErr != nil {
@@ -63,7 +88,7 @@ func (dp Deployment) DeleteResource(clientset *kubernetes.Clientset, resourceInf
 		return false, convertErr
 	}
 	deleteOptions := metav1.DeleteOptions{}
-	resourceName := resourceInfo.GetName()
+	resourceName := config.LINKSHARED + resourceInfo.GetName()
 	resourceInfo.ObjectMeta.ResourceVersion = ""
 
 	result := dp.apiCaller.Delete(resourceName, &deleteOptions)

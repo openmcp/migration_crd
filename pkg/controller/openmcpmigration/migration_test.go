@@ -11,13 +11,13 @@ func TestInsertEtcd(t *testing.T) {
 
 }
 
-func TestVolume(t *testing.T) {
+// func TestVolume(t *testing.T) {
 
-	source := "10.0.0.223"
-	target := "10.0.0.222"
-	MigrationVolume(source, target, "/root/testvolume/test200m")
+// 	source := "10.0.0.223"
+// 	target := "10.0.0.222"
+// 	MigrationVolume(source, target, "/root/testvolume/test200m")
 
-}
+// }
 
 func TestGetResourceJson(t *testing.T) {
 
@@ -67,9 +67,9 @@ func Test(t *testing.T) {
 	}
 
 	// MigratioResource(migSpec.MigrationSource[0])
-	for i := 0; i < 1; i++ {
-		MigratioResource(migSpec.MigrationSources[i], migSpec.VolumePath)
-	}
+	// for i := 0; i < 1; i++ {
+	// 	MigrationResource(migSpec.MigrationSources[i], migSpec.VolumePath)
+	// }
 
 	// sourcessh, err := GetEtcd("223ssh")
 	// if err != nil {

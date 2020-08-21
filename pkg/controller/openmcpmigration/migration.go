@@ -18,7 +18,7 @@ import (
 	resources "nanum.co.kr/openmcp/migration/pkg/controller/openmcpmigration/resources"
 )
 
-func MigratioResource(migSpec nanumv1alpha1.MigrationSource, volumepath string) {
+func MigrationResource(migSpec nanumv1alpha1.MigrationSource, volumepath string, linksharestatus bool) {
 	// 리소스 마이그레이션
 	now := time.Now()
 
@@ -54,6 +54,7 @@ func MigratioResource(migSpec nanumv1alpha1.MigrationSource, volumepath string) 
 
 	switch ResourceType {
 	case "Deployment", "deployment", "deploy", "dp":
+		ResourceType = "dp"
 		client = resources.Deployment{}
 	case "Service", "service", "svc", "sv":
 		client = resources.Service{}
@@ -78,7 +79,38 @@ func MigratioResource(migSpec nanumv1alpha1.MigrationSource, volumepath string) 
 	}
 
 	log.Println("create resource start")
-	if ResourceType == "pv" {
+	if ResourceType == "pv" && linksharestatus != true {
+		createResult, apiCallErr := client.CreateLinkShare(targetClusterClient, resourceData)
+		if apiCallErr != nil {
+			fmt.Print(apiCallErr)
+			log.Println("create LinkShare resource error :"+now.String(), err)
+		} else {
+			fmt.Print(createResult)
+			log.Println("create LinkShare resource complete", createResult)
+
+			go MigrationVolume(migSpec, targetCluster, sourceCluster, volumePath)
+
+		}
+
+	} else if linksharestatus != true {
+		createResult, apiCallErr := client.CreateLinkShare(targetClusterClient, resourceData)
+		if apiCallErr != nil {
+			fmt.Print(apiCallErr)
+			log.Println("create LinkShare resource error :"+now.String(), err)
+		} else {
+			fmt.Print(createResult)
+			log.Println("create LinkShare resource complete", createResult)
+		}
+
+	} else if linksharestatus == true && ResourceType == "dp" {
+		deleteResult, apiCallErr := client.DeleteResource(sourceClusterClient, resourceData)
+		if apiCallErr != nil {
+			fmt.Print(apiCallErr)
+			log.Println("delete resource error :"+now.String(), err)
+		} else {
+			fmt.Print(deleteResult)
+			log.Println("delete resource complete", deleteResult)
+		}
 		createResult, apiCallErr := client.CreateResource(targetClusterClient, resourceData)
 		if apiCallErr != nil {
 			fmt.Print(apiCallErr)
@@ -87,7 +119,6 @@ func MigratioResource(migSpec nanumv1alpha1.MigrationSource, volumepath string) 
 			fmt.Print(createResult)
 			log.Println("create resource complete", createResult)
 		}
-
 	} else {
 		createResult, apiCallErr := client.CreateResource(targetClusterClient, resourceData)
 		if apiCallErr != nil {
@@ -97,34 +128,26 @@ func MigratioResource(migSpec nanumv1alpha1.MigrationSource, volumepath string) 
 			fmt.Print(createResult)
 			log.Println("create resource complete", createResult)
 		}
-
-		deleteResult, apiCallErr := client.DeleteResource(sourceClusterClient, resourceData)
-		if apiCallErr != nil {
-			fmt.Print(apiCallErr)
-			log.Println("create resource error :"+now.String(), err)
-		} else {
-			fmt.Print(deleteResult)
-			log.Println("create resource complete", deleteResult)
-		}
 	}
 	log.Println(sourceCluster + "-->" + targetCluster + " resource: " + resourceName)
 	log.Println("migration complete : " + now.String())
-	/*
-		볼륨 마이그레이션 구조 변겨응로 인한 코드 수정 필요
-	*/
-	go MigrationVolume(targetCluster, sourceCluster, volumePath)
 
 }
 
-func MigrationVolume(sourceCluster string, targetCluster string, volumePath string) {
+func MigrationVolume(migSpec nanumv1alpha1.MigrationSource, sourceCluster string, targetCluster string, volumePath string) {
 	// 볼륨 마이그레이션 RSYNC방식
-	// 볼륨 마이그레이션 구조 변겨응로 인한 코드 수정 필요
-	t := time.Now().Format("Stamp")
-	exec.Command("bash", "-c", "ssh root@"+targetCluster)
+	// externeal etcd 접근 방식 수정 필요
+	// t := time.Now().Format("Stamp")
 
-	fmt.Println(t)
-	result, _ := exec.Command("bash", "-c", "rsync -ravzh root@"+sourceCluster+":"+volumePath+" "+volumePath).Output()
-	fmt.Println(result)
+	//external etcd 접근하여 폴더 복사
+	exec.Command("bash", "-c", "ssh root@"+config.EXTERNAL_ETCD_HOST)
+
+	// fmt.Println(t)
+	// result, _ := exec.Command("bash", "-c", "rsync -ravzh "+volumePath+" root@"+targetCluster+":"+volumePath).Output()
+	// fmt.Println(result)
+
+	exec.Command("bash", "-c", "rsync -ravzh "+volumePath+" root@"+targetCluster+":"+volumePath)
+	//MigrationResource(migSpec, volumePath, true)
 }
 
 func getKubeClient(clusterInfo string) *kubernetes.Clientset {
@@ -134,8 +157,6 @@ func getKubeClient(clusterInfo string) *kubernetes.Clientset {
 	if err != nil {
 		fmt.Print(err)
 	}
-	fmt.Println("-----------------------------")
-	fmt.Println(con)
 	clientconf, err := con.ClientConfig()
 	if err != nil {
 		fmt.Print(err)
@@ -152,11 +173,10 @@ func getKubeClient(clusterInfo string) *kubernetes.Clientset {
 
 func getKeyFile() (key ssh.Signer, err error) {
 	//클러스터 조인시 SSH 키 파일 정보 필요
-	//통합시 수정 필요 부분
-	keyFile := config.SSHKEYFILEPATH
+	keyFile := config.SSHKEY_FILEPATH
 	buf, err := ioutil.ReadFile(keyFile)
 	if err != nil {
-		return
+		return key, err
 	}
 	key, err = ssh.ParsePrivateKey(buf)
 	if err != nil {

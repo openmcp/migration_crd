@@ -3,17 +3,15 @@ module nanum.co.kr/openmcp/migration
 go 1.13
 
 require (
-	github.com/bramvdbogaerde/go-scp v0.0.0-20200119201711-987556b8bdd7
+	github.com/bramvdbogaerde/go-scp v0.0.0-20200119201711-987556b8bdd7 // indirect
 	github.com/coreos/etcd v3.3.19+incompatible // indirect
-	github.com/gorilla/websocket v1.4.2
-	github.com/julienschmidt/httprouter v1.2.0
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/operator-framework/operator-sdk v0.16.1-0.20200323222658-501f753aecdc
 	github.com/spf13/pflag v1.0.5
-	github.com/tmc/scp v0.0.0-20170824174625-f7b48647feef
+	github.com/tmc/scp v0.0.0-20170824174625-f7b48647feef // indirect
 	go.etcd.io/etcd v3.3.19+incompatible
 	golang.org/x/crypto v0.0.0-20191028145041-f83a4685e152
-	golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v12.0.0+incompatible

@@ -35,6 +35,8 @@ spec:
               description: container service list spec
               items:
                 properties:
+                  LinkShareStatus:
+                    type: boolean
                   MigrationSource:
                     description: container service spec
                     items:
@@ -61,6 +63,7 @@ spec:
                   VolumePath:
                     type: string
                 required:
+                - LinkShareStatus
                 - MigrationSource
                 - VolumePath
                 type: object

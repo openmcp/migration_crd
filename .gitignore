@@ -79,3 +79,5 @@ tags
 jihoon/*
 api.go
 main.go
+migration_test.go
+vendor/*

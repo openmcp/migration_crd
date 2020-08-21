@@ -16,6 +16,7 @@ type MigrationServiceSource struct {
 	// container service spec
 	MigrationSources []MigrationSource `json:"MigrationSource"`
 	VolumePath       string            `json:"VolumePath"`
+	LinkShareStatus  bool              `json:"LinkShareStatus"`
 }
 type MigrationSource struct {
 	// Migration source

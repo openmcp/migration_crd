@@ -34,7 +34,7 @@ func InsertEtcd(key string, value string) (bool, error) {
 	ctx, _ := context.WithTimeout(context.Background(), requestTimeout)
 	cli, err := clientv3.New(clientv3.Config{
 		DialTimeout: dialTimeout,
-		Endpoints:   []string{config.ETCDENDPOINT},
+		Endpoints:   []string{config.EXTERNAL_ETCD_HOST + ":" + config.EXTERNAL_ETCD_PORT},
 		//TLS:         tlsConfig,
 	})
 	if err != nil {
@@ -159,7 +159,7 @@ func GetEtcd(key string) (string, error) {
 	ctx, _ := context.WithTimeout(context.Background(), requestTimeout)
 	cli, err := clientv3.New(clientv3.Config{
 		DialTimeout: dialTimeout,
-		Endpoints:   []string{config.ETCDENDPOINT},
+		Endpoints:   []string{config.EXTERNAL_ETCD_HOST + ":" + config.EXTERNAL_ETCD_PORT},
 		//TLS:         tlsConfig,
 	})
 	if err != nil {
@@ -231,13 +231,13 @@ func (r *ReconcileOpenMCPMigration) Reconcile(request reconcile.Request) (reconc
 	// 	fmt.Print(err)
 	// 	fmt.Print(clientconf)
 	// }
-
 	serviceList := instance.Spec.MigrationServiceSources // 0 to read all files and folders
 	for _, data := range serviceList {
 		for _, data2 := range data.MigrationSources {
-			MigratioResource(data2, data.VolumePath)
+			MigrationResource(data2, data.VolumePath, data.LinkShareStatus)
 		}
 	}
+
 	// clientset, err = kubernetes.NewForConfig(clientconf)
 	// Define a new Pod object
 	// pod := newPodForCR(instance)
